@@ -5,36 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css"> 
 
     <title>Amazon</title>
   </head>
   <body>
+    <h1>Image Search Gallery </h1>
+    <div class="container">
+        <input type="text" class="input" placeholder="Search for Images🔎"/>
+        <button class="search_btn">Search</button>
+        <div class="display_images"></div>
+        <button class="showmore">Show More</button>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+    
 
     <script>
-        const BASE_URL = "https://api.pexels.com/api/product/";
-        const headers = new Headers({
-            "Content-Type": "application/json",
-            Authorization: 
-              "563492ad6f9170000100000119c438fe77374da080d4a0d01369fab5" 
-        });
-        const getProducts = () => {
-            fetch(BASE_URL,{headers})
-            .then((res) => res.json()) 
-            .then((data) => callback(null, data))
-            .catch((error) => callback(error, null));
-        };
-        window.onload = function () {
-            getProducts((error, data) => {
-                if(error) {
-                    console.log({error});
-                }   else {
-                    console.log({data});
-                }
+        const apikey = "563492ad6f9170000100000119c438fe77374da080d4a0d01369fab5";
+        const input = document.querySelector("input");
+        const search_btn = document.querySelector(".search_btn");
+        const showmore_btn = document.querySelector(".showmore");
+
+        let page_num = 1;
+        let search_text = "";
+        let search = false;
+
+        input.addEventListener("input",(event) => {
+            event.preventDefault();
+            search_text = event.target.value;
+        })
+
+function display_images(response){
+    //use forEach loop to iterate on each item
+    response.photos.forEach((image) => {
+        const photo=document.createElement("div");
+        photo.innerHTML=`<img src=${image.src.large}>
+        <figcaption> Photo By: ${image.photographer}📸</figcaption>`;
+        document.querySelector(".display_images").appendChild(photo);
+    });
+}
+
+        search_btn.addEventListener("click",() => {
+            if(input.value === "")
+            {
+                alert("Please enter the some text")
+                return;
+            }
+            cleargallery();
+            search = true;
+            SearchPhotos(search_text,page_num);
+        })
+
+        function cleargallery() {
+            document.querySelector(".display_images").innerHTML = "";
+            page_num = 1;
+        }
+        
+        async function CuratedPhotos(page_num) {
+            const data = await fetch(`https://api.pexels.com/v1/curated?page=${page_num}`,
+            {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    Authorization: "563492ad6f9170000100000119c438fe77374da080d4a0d01369fab5",
+                },
             });
-        };
+            const response = await data.json();
+            console.log(response);
+
+            display_images(response);
+        }
+
+
+        showmore_btn.addEventListener("click", () => {
+            if(!search) {
+                page_num++;
+                CuratedPhotos(page_num);
+            }
+            else {
+                if(search_text.value === "")
+                return;
+                page_num++;
+                SearchPhotos(search_text, page_num);
+            }
+        })
+
+        CuratedPhotos(page_num);
+
     </script>
 
     
